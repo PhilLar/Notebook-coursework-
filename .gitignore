@@ -1,0 +1,6 @@
+#cache
+__pycache__/
+
+#tests
+test.py
+main_lab.py
