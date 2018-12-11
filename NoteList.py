@@ -1,9 +1,10 @@
 import os
 import random
-#import pickle
-import codecs
+import sqlite3
+#import codecs
 
 from Note import Note
+from check import *
 
 class NoteList:
     def __init__(self):
@@ -130,6 +131,7 @@ tmp.number, tmp.bdate))
 
     def remove_note_lab(self, n):
         count = 0
+        #isRemoved = False
         tmp = self.head
         if n == 1:
             self.head = tmp.next
@@ -138,7 +140,7 @@ tmp.number, tmp.bdate))
                 count += 1
                 if count == n:
                     tmp.next = tmp.next.next
-                    print('Произошло удаление')
+                    print('Произошло удoление')
                     break
                 tmp = tmp.next
             if n < 1:
@@ -174,30 +176,56 @@ tmp.number, tmp.bdate))
 #             #print('_________________________________________')
 #             print('---------------------------------------------------------------')
 
-    def write_to_bfile(self):
+#     def write_to_bfile(self):
+#         tmp = self.head
+#         FILENAME = "notebook.txt"
+#         notes = '| Фамилия         | Имя             | Телефон | \
+# Дата рождения |\n---------------------------------------------------------------\n'
+#         while(tmp):
+#             note = '| {}{} | {}{} | {}  | {}    |\n\
+# ---------------------------------------------------------------\n\
+# '.format(tmp.sname,(15-len(tmp.sname))*' ', tmp.name,(15-len(tmp.name))*' ',\
+# tmp.number, tmp.bdate)
+#             tmp = tmp.next
+#             notes += note
+#         # with open(FILENAME, "wb") as file:
+#         #     pickle.dump(notes, file)
+#         with open(FILENAME, 'a') as the_file:
+#             the_file.write(notes)
+
+    def write_to_bd(self, bd_name):
+        conn = sqlite3.connect('notebook.db')
+        c = conn.cursor()
         tmp = self.head
-        FILENAME = "notebook.txt"
-        notes = '| Фамилия         | Имя             | Телефон | \
-Дата рождения |\n---------------------------------------------------------------\n'
-        while(tmp):
-            note = '| {}{} | {}{} | {}  | {}    |\n\
----------------------------------------------------------------\n\
-'.format(tmp.sname,(15-len(tmp.sname))*' ', tmp.name,(15-len(tmp.name))*' ',\
-tmp.number, tmp.bdate)
+        c.execute("SELECT num FROM {}".format(bd_name))
+        nums_fetch = c.fetchall()
+        num_list = []
+        for i in nums_fetch:
+            num_list.append(i[0])
+        while tmp:
+            if not tmp.number in num_list:
+                c.execute("INSERT INTO {} VALUES ('{}', '{}', {}, '{}')"\
+                .format(bd_name, tmp.name, tmp.sname, tmp.number, tmp.bdate))
             tmp = tmp.next
-            notes += note
-        # with open(FILENAME, "wb") as file:
-        #     pickle.dump(notes, file)
-        with open(FILENAME, 'a') as the_file:
-            the_file.write(notes)
+        conn.commit()
+        #c.close()
 
 
-    def read_from_bfile(self):
-        print(1)
-        FILENAME = "notebook.txt"
-        # with open(FILENAME, "rb") as file:
-        #     notes = pickle.load(file)
-        notes = ''
-        with open(FILENAME, encoding='utf-8') as f:
-            notes = f.read()
-        print(notes)
+    def read_from_bd(self, bd_name):
+        self.head = None
+        conn = sqlite3.connect('notebook.db')
+        c = conn.cursor()
+        c.execute("SELECT * FROM {}".format(bd_name))
+        l = c.fetchall()
+        for i in l:
+            self.fill_list(Note(i[0],i[1],i[2],i[3]))
+
+    def print_from_bd(self, bd_name):
+        self.new_head = None
+        conn = sqlite3.connect('notebook.db')
+        c = conn.cursor()
+        c.execute("SELECT * FROM {}".format(bd_name))
+        l = c.fetchall()
+        for i in l:
+            self.fill_new_list(Note(i[0],i[1],i[2],i[3]))
+        self.print_new_list()

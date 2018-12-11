@@ -1,6 +1,10 @@
 #cache
 __pycache__/
+damaged_dbs/
 
 #tests
 test.py
 main_lab.py
+
+#db
+notebook.db

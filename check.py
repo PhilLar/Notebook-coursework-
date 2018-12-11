@@ -1,4 +1,5 @@
 import os
+import sqlite3
 
 def check_name(s):
     if s == '' or (ord(s[0]) not in range(1040,1072)) or len(s)>15:
@@ -14,7 +15,14 @@ def check_number(s, nb):
     for i in s:
         if ord(i) not in range(48,58):
             return False
+    return True
 
+def check_natural(s):
+    if not s:
+        return False
+    for i in s:
+        if ord(i) not in range(48,58):
+            return False
     return True
 
 def check_bdate(s):
@@ -44,3 +52,14 @@ def check_bdate(s):
             # print('Дата содержит только цифры!')
             return False
     return True
+
+def check_bd(bd_name):
+    conn = sqlite3.connect('notebook.db')
+    c = conn.cursor()
+    c.execute("SELECT name FROM sqlite_master \
+WHERE type='table' AND name='{}'".format(bd_name))
+    if not c.fetchone():
+        return False
+    else:
+        return True
+    #c.close()
